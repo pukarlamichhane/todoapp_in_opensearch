@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { I18nProvider } from '@osd/i18n/react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+
+import RouterT from './RouterT';
 import './app.scss';
 import {
   EuiButton,
@@ -23,9 +23,14 @@ import {
   EuiFlyoutFooter,
   EuiSwitch,
   EuiButtonEmpty,
+  EuiSelect,
+  EuiSpacer,
 } from '@elastic/eui';
 import ToastMessage from './toast';
 import { addToast } from './toast';
+import axios from 'axios';
+
+import { Chart, Partition, Settings, PartitionLayout } from '@elastic/charts';
 
 interface TodoappAppDeps {
   basename: string;
@@ -36,6 +41,10 @@ interface todo {
   task: string;
   description: string;
   complete: boolean;
+  createat: Date;
+  updateat: Date;
+  status: boolean;
+  severity: string;
 }
 
 export const TodoappApp = ({ basename }: TodoappAppDeps) => {
@@ -44,7 +53,8 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
   const [isFlyoutVisible, setIsFlyoutVisible] = useState(false);
   const closeModal = () => setIsDestroyModalVisible(false);
   const [checked, setChecked] = useState(false);
-  const [update, setUpdate] = useState<any>({});
+  const [option, setOption] = useState(false);
+
   const [newtitle, setTitle] = useState('');
   const [newdescription, setdescription] = useState('');
   const [Itemdelete, setItemDelete] = useState<number>();
@@ -54,6 +64,15 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [errorMessageDesc, setErrorMessageDesc] = useState('');
   const [updateerrorMessage, setUpdateErrorMessage] = useState('');
+
+  const options = [
+    { value: 'Low', text: 'Low' },
+    { value: 'Medium', text: 'Medium' },
+    { value: 'High', text: 'High' },
+    { value: 'Critical', text: 'Critical' },
+  ];
+
+  const [value, setValue] = useState(options[1].value);
 
   const addtask = () => {
     const trimmedTitle = newtitle.trim();
@@ -83,14 +102,15 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
           : ''
       );
     } else {
-      const newtask = {
-        id: todos.length + 1,
+      const res = axios.post('http://localhost:3000/api/create', {
         task: newtitle,
         description: newdescription,
-        complete: false,
-      };
-
-      settodos([...todos, newtask]);
+        severity: value,
+      });
+      console.log(res);
+      setTimeout(() => {
+        fetch();
+      }, 1800);
       setTitle('');
       setdescription('');
       setErrorMessage('');
@@ -110,15 +130,21 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
     setChecked(e.target.checked);
   };
 
-  const updateTodos = (id: any) => {
-    setUpdate(id);
-    setIsFlyoutVisible(true);
+  const oChange = (e: any) => {
+    setValue(e.target.value);
   };
+
+  const updateOptions = (e: any) => {
+    setOption(e.target.value);
+  };
+
   const deleteTodos = (id: number) => {
     setItemDelete(id);
   };
 
-  const DTodos = () => {
+  const DTodos = async () => {
+    const res = await axios.delete(`http://localhost:3000/api/delete/${Itemdelete}`);
+    console.log(res.data);
     settodos(todos.filter((todo: any) => todo.id !== Itemdelete));
     setIsDestroyModalVisible(false);
   };
@@ -128,10 +154,21 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
     setupdatetask(data.task);
     setupdatedescription(data.description);
     setChecked(data.complete);
+    setOption(data.severity);
     setAllUpdateData(data);
   };
 
-  const handleUpdate = () => {
+  const fetch = async () => {
+    const response = await axios.get('http://localhost:3000/api/gettodo');
+    console.log(JSON.stringify(response.data));
+    settodos(response.data);
+  };
+
+  useEffect(() => {
+    fetch();
+  }, []);
+
+  const handleUpdate = async () => {
     if (updatetask.trim().length !== 0 && updatedescription.trim().length !== 0) {
       if (
         updatetask.length !== updatetask.trim().length ||
@@ -139,6 +176,14 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
       ) {
         setUpdateErrorMessage('Please remove leading or trailing spaces');
       } else {
+        const response = await axios.put(`http://localhost:3000/api/put/${allUpdateData.id}`, {
+          task: updatetask.trim(),
+          description: updatedescription.trim(),
+          complete: checked,
+          severity: option,
+        });
+        console.log(response);
+
         const updatednewdata = todos.map((item: any) =>
           item.id === allUpdateData.id
             ? {
@@ -146,6 +191,7 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
                 task: updatetask.trim(),
                 description: updatedescription.trim(),
                 complete: checked,
+                severity: option,
               }
             : item
         );
@@ -224,6 +270,18 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
                 </EuiFlexItem>
               </EuiFlexGroup>
             </EuiFlexItem>
+            <EuiFlexItem>
+              <EuiFlexGroup direction="row" justifyContent="spaceBetween">
+                <EuiFlexItem>
+                  <EuiTitle size="m">
+                    <h2 className="task-tittle">Serverity</h2>
+                  </EuiTitle>
+                </EuiFlexItem>
+                <EuiFlexItem>
+                  <EuiSelect fullWidth options={options} onChange={(e) => updateOptions(e)} />
+                </EuiFlexItem>
+              </EuiFlexGroup>
+            </EuiFlexItem>
           </EuiFlexGroup>
         </EuiFlyoutBody>
         <EuiFlyoutFooter
@@ -245,6 +303,29 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
     );
   }
 
+  const severityColor = (severity: string) => {
+    switch (severity) {
+      case 'Low':
+        return 'success';
+      case 'Medium':
+        return 'primary';
+      case 'High':
+        return 'warning';
+      case 'Critical':
+        return 'danger';
+      default:
+        return 'default';
+    }
+  };
+  const onlineUsers = todos.filter((todo: todo) => todo.status === false);
+
+  const STATUS_DATA = [
+    { status: 'Low', count: 10 },
+    { status: 'Medium', count: 20 },
+    { status: 'High', count: 30 },
+    { status: 'Critical', count: 40 },
+  ];
+
   const columns: Array<EuiBasicTableColumn<todo>> = [
     {
       field: 'task',
@@ -261,6 +342,17 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
       render: (complete: todo['complete']) => {
         const color = complete ? 'success' : 'danger';
         const label = complete ? 'True' : 'False';
+        return <EuiBadge color={color}>{label}</EuiBadge>;
+      },
+    },
+    {
+      field: 'severity',
+      name: 'Severity',
+
+      render: (serverity: todo['severity']) => {
+        console.log(serverity);
+        const color = severityColor(serverity);
+        const label = serverity;
         return <EuiBadge color={color}>{label}</EuiBadge>;
       },
     },
@@ -289,87 +381,120 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
       ],
     },
   ];
-  console.log(todos, 'this is old all data............');
-  console.log(allUpdateData, 'this is all updated data....');
-  return (
-    <Router basename={basename}>
-      <I18nProvider>
-        <>
-          <EuiPage restrictWidth="1000px">
-            <EuiPageBody component="main">
-              <EuiPageContent>
-                <EuiPageContentBody>
-                  <EuiForm>
-                    <EuiFlexGroup direction="column">
-                      <EuiFlexItem>
-                        <EuiFlexGroup>
-                          <EuiFlexItem>
-                            <EuiFieldText
-                              type="text"
-                              aria-label="Use aria labels when no actual label is in use"
-                              fullWidth
-                              placeholder="Task"
-                              value={newtitle}
-                              onChange={(e: any) => {
-                                setTitle(e.target.value);
-                              }}
-                            />
-                            {errorMessage && <div className="error-message">{errorMessage}</div>}
-                          </EuiFlexItem>
 
-                          <EuiFlexItem>
-                            <EuiFieldText
-                              type="text"
-                              aria-label="Use aria labels when no actual label is in use"
-                              fullWidth
-                              placeholder="Description"
-                              value={newdescription}
-                              onChange={(e: any) => {
-                                setdescription(e.target.value);
-                              }}
-                            />
-                            {errorMessageDesc && (
-                              <div className="error-message">{errorMessageDesc}</div>
-                            )}
-                          </EuiFlexItem>
-                        </EuiFlexGroup>
+  const chartBaseTheme = {
+    colors: {
+      vizColors: ['#d36086', '#9170b8', '#ca8eae', '#d6bf57'],
+    },
+  };
+  return (
+    <>
+      <EuiPage restrictWidth="1000px">
+        <EuiPageBody component="main" style={{ gap: '10px' }}>
+          <EuiPageContent>
+            <EuiTitle className="eui-textCenter" size="xs">
+              <h3>Severity</h3>
+            </EuiTitle>
+            <EuiSpacer />
+            <Chart size={{ height: 300 }}>
+              <Settings showLegend={true} legendMaxDepth={1} />
+              <Partition
+                id="pieByPR"
+                data={STATUS_DATA}
+                valueAccessor={(d) => d.count}
+                layers={[
+                  {
+                    groupByRollup: (d: any) => d.status,
+                    shape: {
+                      fillColor: (_, sortIndex) =>
+                        chartBaseTheme.colors.vizColors[
+                          sortIndex % chartBaseTheme.colors.vizColors.length
+                        ],
+                    },
+                  },
+                ]} // Set this to `true` for normal clockwise sectors
+              />
+            </Chart>
+          </EuiPageContent>
+          <EuiPageContent>
+            <EuiPageContentBody>
+              <EuiForm>
+                <EuiFlexGroup direction="column">
+                  <EuiFlexItem>
+                    <EuiFlexGroup>
+                      <EuiFlexItem>
+                        <EuiFieldText
+                          type="text"
+                          aria-label="Use aria labels when no actual label is in use"
+                          fullWidth
+                          placeholder="Task"
+                          value={newtitle}
+                          onChange={(e: any) => {
+                            setTitle(e.target.value);
+                          }}
+                        />
+                        {errorMessage && <div className="error-message">{errorMessage}</div>}
                       </EuiFlexItem>
 
-                      <EuiFlexItem
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'flex-end',
-                          flexDirection: 'row',
-                        }}
-                      >
-                        <EuiButton style={{ width: '100px' }} onClick={addtask}>
+                      <EuiFlexItem>
+                        <EuiFieldText
+                          type="text"
+                          aria-label="Use aria labels when no actual label is in use"
+                          fullWidth
+                          placeholder="Description"
+                          value={newdescription}
+                          onChange={(e: any) => {
+                            setdescription(e.target.value);
+                          }}
+                        />
+                        {errorMessageDesc && (
+                          <div className="error-message">{errorMessageDesc}</div>
+                        )}
+                      </EuiFlexItem>
+                    </EuiFlexGroup>
+                  </EuiFlexItem>
+
+                  <EuiFlexItem>
+                    <EuiFlexGroup justifyContent="spaceBetween">
+                      <EuiFlexItem>
+                        <EuiSelect
+                          style={{ width: '500px' }}
+                          options={options}
+                          value={value}
+                          onChange={(e) => oChange(e)}
+                        />
+                      </EuiFlexItem>
+
+                      <EuiFlexItem grow={false}>
+                        <EuiButton style={{ width: '100px', fontSize: '15px' }} onClick={addtask}>
                           Add task
                         </EuiButton>
                       </EuiFlexItem>
                     </EuiFlexGroup>
-                  </EuiForm>
-                </EuiPageContentBody>
-                <EuiBasicTable items={todos} columns={columns}></EuiBasicTable>
-                {isDestroyModalVisible && (
-                  <EuiConfirmModal
-                    title="Discard dashboard changes?"
-                    onCancel={closeModal}
-                    onConfirm={DTodos}
-                    cancelButtonText="No"
-                    confirmButtonText="Yes"
-                    buttonColor="danger"
-                    defaultFocusedButton="confirm"
-                  >
-                    <p>You will lose all unsaved changes made to this dashboard.</p>
-                  </EuiConfirmModal>
-                )}
-                {flyout}
-              </EuiPageContent>
-            </EuiPageBody>
-          </EuiPage>
-          <ToastMessage />
-        </>
-      </I18nProvider>
-    </Router>
+                  </EuiFlexItem>
+                </EuiFlexGroup>
+              </EuiForm>
+            </EuiPageContentBody>
+            <EuiBasicTable items={onlineUsers} columns={columns}></EuiBasicTable>
+            {isDestroyModalVisible && (
+              <EuiConfirmModal
+                title="Discard dashboard changes?"
+                onCancel={closeModal}
+                onConfirm={DTodos}
+                cancelButtonText="No"
+                confirmButtonText="Yes"
+                buttonColor="danger"
+                defaultFocusedButton="confirm"
+              >
+                <p>You will lose all unsaved changes made to this dashboard.</p>
+              </EuiConfirmModal>
+            )}
+            {flyout}
+          </EuiPageContent>
+        </EuiPageBody>
+      </EuiPage>
+      <ToastMessage />
+      <RouterT />
+    </>
   );
 };

@@ -1,12 +1,5 @@
-import React, { useState, Fragment } from 'react';
-import {
-  EuiCode,
-  EuiGlobalToastList,
-  EuiLink,
-  EuiFlexGroup,
-  EuiFlexItem,
-  EuiButton,
-} from '@elastic/eui';
+import React, { useState } from 'react';
+import { EuiGlobalToastList } from '@elastic/eui';
 let addToastHandler: any;
 let removeAllToastsHandler: any;
 let toastId = 0;
