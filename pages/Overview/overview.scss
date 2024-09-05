@@ -1,0 +1,19 @@
+.overview-bar .echLegendList{
+    display: flex !important;
+    justify-content: center !important;
+}
+
+.overview.euiPage{
+    padding: 0 !important;
+}
+
+.overview-date
+{
+    margin:20px 0;
+    display: flex;
+}
+
+.overview-datepicker{
+    display: flex;
+    justify-content: space-between;
+}

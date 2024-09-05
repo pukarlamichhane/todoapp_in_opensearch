@@ -1,34 +1,42 @@
-#todoapp.helloWorldText{
-    text-align: center;
+
+
+.mainpage-tittle{
+    font-weight: 600;
+}
+
+.mainpage-rule{
+    margin: 10px 0;
+    height: 3px;
+
 }
 
 
-.task-tittle{
-    font-weight: 500;
+.mainpage-tab .euiTabs .euiTab{
+    font-weight:300;
     font-size: 16px;
+    padding: 0 15px 0 0 !important;
+    color: #343741;
+
 }
 
-.task-switch{
-    margin-top: 9px;
+
+.mainpage-tab .euiTabs .euiTab.euiTab-isSelected{
+    font-weight: 600;
+    font-size: 16px;
+    color:#0F3254;
+    background-color: aliceblue;
 }
 
 
-.error-message{
-    font-size: 14px;
-    color: red;
+
+.mainpage-tabs.euiTabs button{
+    padding: 0 10px 4px 4px ;
+
 }
 
-.btn-add{
-    width: 100px;
-}
 
-.flyout-body{
-    margin: '30px 70px 0px 70px';
-}
-
-.flyout-footer{
-    display: flex;
-    gap: 10px;
-    flex-direction: row;
-    justify-content: space-between;
+.mainpage-tabs.euiTabs button .euiTab__content svg{
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
 }

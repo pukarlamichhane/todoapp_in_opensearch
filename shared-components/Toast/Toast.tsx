@@ -35,7 +35,7 @@ const ToastMessage = () => {
     };
   };
   return (
-    <div style={{ maxWidth: 320 }}>
+    <div className="toast">
       <EuiGlobalToastList toasts={toasts} dismissToast={removeToast} toastLifeTimeMs={6000} />
     </div>
   );
