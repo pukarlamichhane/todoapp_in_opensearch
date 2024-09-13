@@ -1,0 +1,35 @@
+
+.task-tittle{
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.task-switch{
+    margin-top: 9px;
+}
+
+
+.error-message{
+    font-size: 14px;
+    color: red;
+}
+
+.btn-add{
+    width: 100px;
+}
+
+.flyout-body{
+    margin: '30px 70px 0px 70px';
+}
+
+.flyout-footer{
+    display: flex;
+    gap: 10px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+
+.table-table .euiTableRowCell {
+    border-bottom: none !important;
+}
