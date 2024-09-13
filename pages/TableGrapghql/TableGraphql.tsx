@@ -28,12 +28,13 @@ import {
 import ToastMessage from '../../shared-components/Toast/Toast';
 import TableMessage from '../../shared-components/tableMessage/TableMessage';
 import Textfield from '../../shared-components/Textfield/Textfield';
+
 import {
-  useAddTaskMutation,
-  useDeleteTaskMutation,
-  useGetTaskQuery,
-  useUpdateTaskMutation,
-} from '../../redux/services/todoService';
+  useAddGraphqlTaskMutation,
+  useDeleteGraphqlTaskMutation,
+  useGetGraphqlTaskQuery,
+  useUpdateGraphqlTaskMutation,
+} from '../../redux/services/graphqlService';
 
 interface todo {
   id: number;
@@ -46,7 +47,7 @@ interface todo {
   severity: string;
 }
 
-const Table = () => {
+const TableGraphql = () => {
   const [todos, settodos] = useState<any>([]);
   const [isDestroyModalVisible, setIsDestroyModalVisible] = useState(false);
   const [isFlyoutVisible, setIsFlyoutVisible] = useState(false);
@@ -110,7 +111,6 @@ const Table = () => {
       console.log(task);
 
       const a = await addtask(task);
-      console.log(a);
       setTitle('');
       setdescription('');
       setErrorMessage('');
@@ -136,18 +136,18 @@ const Table = () => {
 
   const DTodos = async () => {
     const A = await deletetask(Itemdelete);
+
     console.log(A);
     settodos(todos.filter((todo: any) => todo.id !== Itemdelete));
     setIsDestroyModalVisible(false);
   };
 
-  const { data, isLoading, isError } = useGetTaskQuery('');
+  const { data, isLoading, isError } = useGetGraphqlTaskQuery(''); //graphql
 
-  console.log(data);
-
-  const [addtask] = useAddTaskMutation();
-  const [updattask] = useUpdateTaskMutation();
-  const [deletetask] = useDeleteTaskMutation();
+  //graphql
+  const [addtask] = useAddGraphqlTaskMutation();
+  const [updattask] = useUpdateGraphqlTaskMutation();
+  const [deletetask] = useDeleteGraphqlTaskMutation();
 
   const handleEdit = (data: any) => {
     setIsFlyoutVisible(true);
@@ -160,7 +160,7 @@ const Table = () => {
 
   useEffect(() => {
     if (data) {
-      settodos(data);
+      settodos(data.data.todos);
     }
   }, [data]);
 
@@ -179,7 +179,9 @@ const Table = () => {
           complete: checked,
           severity: option,
         };
-        await updattask(response);
+        const a = await updattask(response);
+
+        console.log(a);
         setIsFlyoutVisible(false);
         setErrorMessage('');
       }
@@ -443,4 +445,4 @@ const Table = () => {
   );
 };
 
-export default Table;
+export default TableGraphql;

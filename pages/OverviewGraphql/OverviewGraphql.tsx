@@ -10,16 +10,15 @@ import {
   EuiTitle,
   EuiSuperDatePicker,
 } from '@elastic/eui';
-import './overview.scss';
-
-import { useGetaggMutation } from '../../redux/services/todoService';
+import './overviewGraphql.scss';
+import { useGetGraphqlAggMutation } from '../../redux/services/graphqlService';
 
 interface DataItem {
   key: string;
   doc_count: number;
 }
 
-const Overview: React.FC = () => {
+const OverviewGraphql: React.FC = () => {
   const [startDate, setStartDate] = useState('now-30d');
   const [endDate, setEndDate] = useState('now');
   const [datas, setData] = useState<DataItem[]>([]);
@@ -29,7 +28,7 @@ const Overview: React.FC = () => {
     setEndDate(end);
   };
 
-  const [adddate] = useGetaggMutation();
+  const [adddate] = useGetGraphqlAggMutation();
 
   const fetch = async () => {
     try {
@@ -37,7 +36,8 @@ const Overview: React.FC = () => {
 
       console.log(response);
       if ('data' in response) {
-        setData(response.data);
+        // setData(response.data);
+        setData(response.data?.data.getdate || []); // Assuming `getdate` is the correct data path
       } else if ('error' in response) {
         console.error('An error occurred:', response.error);
       }
@@ -134,4 +134,4 @@ const Overview: React.FC = () => {
   );
 };
 
-export default Overview;
+export default OverviewGraphql;

@@ -17,8 +17,6 @@ export default function Textfield(props: any) {
       setErrorMessage('');
     }
   };
-
-  console.log(passData, 'this is value');
   return (
     /* DisplayToggles wrapper for Docs only */
     <div className="textfield">

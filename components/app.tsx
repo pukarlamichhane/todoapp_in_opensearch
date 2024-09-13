@@ -11,6 +11,8 @@ import {
 } from '@elastic/eui';
 import Overview from '../pages/Overview/Overview';
 import Table from '../pages/Table/Table';
+import OverviewGraphql from '../pages/OverviewGraphql/OverviewGraphql';
+import TableGraphql from '../pages/TableGrapghql/TableGraphql';
 
 interface TodoappAppDeps {
   basename: string;
@@ -30,7 +32,19 @@ export const TodoappApp = ({ basename }: TodoappAppDeps) => {
       id: 'Table',
       name: 'Table',
       iconType: 'heatmap',
-      content: <Table />,
+      content: <Table></Table>,
+    },
+    {
+      id: 'Overviewgraphql',
+      name: 'Overview Graphql',
+      iconType: 'apps',
+      content: <OverviewGraphql></OverviewGraphql>,
+    },
+    {
+      id: 'Tablegraphql',
+      name: 'Table Graphql',
+      iconType: 'heatmap',
+      content: <TableGraphql></TableGraphql>,
     },
   ];
 
